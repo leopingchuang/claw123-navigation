@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claw123 龙虾导航 - OpenClaw 中文一站式生态导航站</title>
+    <meta name="description" content="OpenClaw 生态一站式聚合平台 · 部署 · 教程 · 技能 · 工具 · 社区">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* Custom styles */
+        .bookmark-drag {
+            cursor: move;
+            user-select: none;
+            transition: transform 0.2s ease;
+        }
+        
+        .bookmark-drag:hover {
+            transform: scale(1.1);
+        }
+        
+        .link-card {
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+        
+        .link-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 107, 0, 0.15);
+            border-color: #FF6B00;
+        }
+        
+        .category-header {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .category-header:hover {
+            color: #FF6B00;
+        }
+        
+        .search-input:focus {
+            box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.2);
+        }
+        
+        .copy-btn {
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        
+        .link-card:hover .copy-btn {
+            opacity: 1;
+        }
+        
+        /* Dark mode specific styles */
+        @media (prefers-color-scheme: dark) {
+            .dark\:bg-dark-bg {
+                background-color: #1a1a1a;
+            }
+            
+            .dark\:text-dark-text {
+                color: #f0f0f0;
+            }
+            
+            .dark\:bg-dark-card {
+                background-color: #2a2a2a;
+            }
+            
+            .dark\:border-dark-border {
+                border-color: #444;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen" data-theme="system">
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50 dark:bg-dark-bg dark:text-dark-text">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <!-- Logo -->
+                <div class="flex items-center space-x-3">
+                    <div class="bookmark-drag" draggable="true" id="bookmarkLogo">
+                        <span class="text-2xl">🦞</span>
+                    </div>
+                    <h1 class="text-xl font-bold text-orange-600">Claw123 龙虾导航</h1>
+                </div>
+                
+                <!-- Search -->
+                <div class="flex-1 mx-8 max-w-2xl">
+                    <div class="relative">
+                        <input 
+                            type="text" 
+                            id="searchInput" 
+                            placeholder="搜索所有链接..." 
+                            class="w-full px-4 py-2 pl-10 rounded-lg border border-gray-300 focus:outline-none focus:border-orange-500 search-input dark:bg-dark-card dark:border-dark-border dark:text-dark-text"
+                        >
+                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    </div>
+                </div>
+                
+                <!-- Right Controls -->
+                <div class="flex items-center space-x-4">
+                    <!-- Theme Toggle -->
+                    <button id="themeToggle" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-dark-card">
+                        <i class="fas fa-moon text-orange-600 dark:hidden"></i>
+                        <i class="fas fa-sun text-orange-600 hidden dark:inline"></i>
+                    </button>
+                    
+                    <!-- Bookmark Tips -->
+                    <div class="hidden md:block text-sm text-gray-600 dark:text-gray-300">
+                        <span class="hidden sm:inline">拖动 🦞 到书签栏</span>
+                        <span class="sm:hidden">Cmd/Ctrl+D 收藏</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Banner -->
+    <section class="bg-gradient-to-r from-orange-500 to-orange-600 text-white py-16 dark:from-orange-600 dark:to-orange-700">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-4xl md:text-5xl font-bold mb-4">畅玩小龙虾，尽在 Claw123</h2>
+            <p class="text-xl md:text-2xl mb-8 opacity-90">OpenClaw 生态一站式聚合平台 · 部署 · 教程 · 技能 · 工具 · 社区</p>
+            
+            <!-- Bookmark Demo -->
+            <div class="bg-white bg-opacity-20 rounded-xl p-8 max-w-md mx-auto">
+                <p class="mb-4 text-lg">拖动龙虾图标到书签栏立即收藏</p>
+                <div class="flex justify-center">
+                    <div class="bookmark-drag bg-white bg-opacity-30 rounded-lg p-4 inline-block" draggable="true" id="bookmarkDemo">
+                        <span class="text-3xl">🦞</span>
+                        <span class="ml-2">Claw123导航</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-12">
+        <div id="linksContainer" class="space-y-6">
+            <!-- 热门搜索 -->
+            <div class="category">
+                <div class="category-header flex items-center justify-between p-4 bg-white rounded-lg shadow-sm dark:bg-dark-card dark:text-dark-text">
+                    <h3 class="text-lg font-semibold flex items-center">
+                        <i class="fas fa-search mr-2 text-orange-600"></i>
+                        热门搜索
+                    </h3>
+                    <i class="fas fa-chevron-down category-toggle"></i>
+                </div>
+                <div class="category-content grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 hidden">
+                    <a href="https://www.google.com" target="_blank" class="link-card bg-white p-3 rounded-lg flex items-center dark:bg-dark-card dark:text-dark-text" data-name="谷歌">
+                        <i class="fab fa-google text-red-500 mr-3 text-xl"></i>
+                        <span>谷歌</span>
+                        <button class="copy-btn ml-auto text-gray-400 hover:text-orange-600">
+                            <i class="fas fa-copy text-sm"></i>
+                        </button>
+                    </a>
+                    <a href="https://www.baidu.com" target="_blank" class="link-card bg-white p-3 rounded-lg flex items-center dark:bg-dark-card dark:text-dark-text" data-name="百度">
+                        <i class="fab fa-baidu text-blue-500 mr-3 text-xl"></i>
+                        <span>百度</span>
+                        <button class="copy-btn ml-auto text-gray-400 hover:text-orange-600">
+                            <i class="fas fa-copy text-sm"></i>
+                        </button>
+                    </a>
+                    <a href="https://github.com/search?q=openclaw" target="_blank" class="link-card bg-white p-3 rounded-lg flex items-center dark:bg-dark-card dark:text-dark-text" data-name="GitHub OpenClaw">
+                        <i class="fab fa-github mr-3 text-gray-700 text-xl"></i>
+                        <span>GitHub OpenClaw</span>
+                        <button class="copy-btn ml-auto text-gray-400 hover:text-orange-600">
+                            <i class="fas fa-copy text-sm"></i>
+                        </button>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 百虾大战 -->
+            <div class="category">
+                <div class="category-header flex items-center justify-between p-4 bg-white rounded-lg shadow-sm dark:bg-dark-card dark:text-dark-text">
+                    <h3 class="text-lg font-semibold flex items-center">
+                        <i class="fas fa-fighter-jet mr-2 text-orange-600"></i>
+                        百虾大战
+                    </h3>
+                    <i class="fas fa-chevron-down category-toggle"></i>
+                </div>
+                <div class="category-content grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 hidden">
+                    <a href="https://www.kimi.com/bot" target="_blank" class="link-card bg-white p-3 rounded-lg flex items-center dark:bg-dark-card dark:text-dark-text" data-name="Kimi Claw（云端）">
+                        <span class="mr-3">🤖</span>
+                        <span>Kimi Claw（云端）</span>
+                        <button class="copy-btn ml-auto text-gray-400 hover:text-orange-600">
+                            <i class="fas fa-copy text-sm"></i>
+                        </button>
+                    </a>
+                    <a href="https://agent.minimaxi.com/max-claw" target="_blank" class="link-card bg-white p-3 rounded-lg flex items-center dark:bg-dark-card dark:text-dark-text" data-name="MaxClaw（云端）">
+                        <span class="mr-3">🚀</span>
+                        <span>MaxClaw（云端）</span>
+                        <button class="copy-btn ml-auto text-gray-400 hover:text-orange-600">
+                            <i class="fas fa-copy text-sm"></i>
+                        </button>
+                    </a>
+                    <a href="https://openclaw.feishu.cn/home" target="_blank" class="link-card bg-white p-3 rounded-lg flex items-center dark:bg-dark-card dark:text-dark-text" data-name="飞书OpenClaw（云端）">
+                        <span class="mr-3">📄</span>
+                        <span>飞书OpenClaw（云端）</span>
+                        <button class="copy-btn ml-auto text-gray-400 hover:text-orange-600">
+                            <i class="fas fa-copy text-sm"></i>
+                        </button>
+                    </a>
+                    <a href="https://www.volcengine.com/experience/ark?mode=claw" target="_blank" class="link-card bg-white p-3 rounded-lg flex items-center dark:bg-dark-card dark:text-dark-text" data-name="ArkClaw（云端）">
+                        <span class="mr-3">🔥</span>
+                        <span>ArkClaw（云端）</span>
+                        <button class="copy-btn ml-auto text-gray-400 hover:text-orange-600">
+                            <i class="fas fa-copy text-sm"></i>
+                        </button>
+                    </a>
+                    <a href="https://claw.guanjia.qq.com/" target="_blank" class="link-card bg-white p-3 rounded-lg flex items-center dark:bg-dark-card dark:text-dark-text" data-name="Qclaw（本地）">
+                        <span class="mr-3">💻</span>
+                        <span>Qclaw（本地）</span>
+                        <button class="copy-btn ml-auto text-gray-400 hover:text-orange-600">
+                            <i class="fas fa-copy text-sm"></i>
+                        </button>
+                    </a>
+                    <a href="https://lobsterai.youdao.com/" target="_blank" class="link-card bg-white p-3 rounded-lg flex items-center dark:bg-dark-card dark:text-dark-text" data-name="LobsterAI 有道龙虾（本地）">
+                        <span class="mr-3">🦞</span>
+                        <span>LobsterAI 有道龙虾（本地）</span>
+                        <button class="copy-btn ml-auto text-gray-400 hover:text-orange-600">
+                            <i class="fas fa-copy text-sm"></i>
+                        </button>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 云端部署 -->
+            <div class="category">
+                <div class="category-header flex items-center justify-between p-4 bg-white rounded-lg shadow-sm dark:bg-dark-card dark:text-dark-text">
+                    <h3 class="text-lg font-semibold flex items-center">
+                        <i class="fas fa-cloud mr-2 text-orange-600"></i>
+                        云端部署
+                    </h3>
+                    <i class="fas fa-chevron-down category-toggle"></i>
+                </div>
+                <div class="category-content grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 hidden">
+                    <a href="https://www.aliyun.com/benefit/scene/moltbot" target="_blank" class="link-card bg-white p-3 rounded-lg flex items-center dark:bg-dark-card dark:text-dark-text" data-name="阿里云快速上手">
+                        <i class="fab fa-alipay mr-3 text-blue-500 text-xl"></i>
+                        <span>阿里云快速上手</span>
+                        <button class="copy-btn ml-auto text-gray-400 hover:text-orange-600">
+                            <i class="fas fa-copy text-sm"></i>
+                        </button>
+                    </a>
+                    <a href="https://cloud.tencent.com/act/pro/openclaw" target="_blank" class="link-card bg-white p-3 rounded-lg flex items-center dark:bg-dark-card dark:text-dark-text" data-name="腾讯云轻量应用服务器">
+                        <i class="fab fa-tencent-weibo mr-3 text-green-500 text-xl"></i>
+                        <span>腾讯云轻量应用服务器</span>
+                        <button class="copy-btn ml-auto text-gray-400 hover:text-orange-600">
+                            <i class="fas fa-copy text-sm"></i>
+                        </button>
+                    </a>
+                    <a href="https://www.volcengine.com/activity/clawdbot" target="_blank" class="link-card bg-white p-3 rounded-lg flex items-center dark:bg-dark-card dark:text-dark-text" data-name="火山引擎分钟级部署">
+                        <span class="mr-3">🌋</span>
+                        <span>火山引擎分钟级部署</span>
+                        <button class="copy-btn ml-auto text-gray-400 hover:text-orange-600">
+                            <i class="fas fa-copy text-sm"></i>
+                        </button>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 教程合集 -->
+            <div class="category">
+                <div class="category-header flex items-center justify-between p-4 bg-white rounded-lg shadow-sm dark:bg-dark-card dark:text-dark-text">
+                    <h3 class="text-lg font-semibold flex items-center">
+                        <i class="fas fa-book mr-2 text-orange-600"></i>
+                        教程合集
+                    </h3>
+                    <i class="fas fa-chevron-down category-toggle"></i>
+                </div>
+                <div class="category-content grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 hidden">
+                    <a href="https://docs.openclaw.ai/zh-CN" target="_blank" class="link-card bg-white p-3 rounded-lg flex items-center dark:bg-dark-card dark:text-dark-text" data-name="官方文档">
+                        <i class="fas fa-file-alt mr-3 text-gray-600 text-xl"></i>
+                        <span>官方文档</span>
+                        <button class="copy-btn ml-auto text-gray-400 hover:text-orange-600">
+                            <i class="fas fa-copy text-sm"></i>
+                        </button>
+                    </a>
+                    <a href="https://my.feishu.cn/wiki/H27Iw9ussiaYbokymhncExtjnAh" target="_blank" class="link-card bg-white p-3 rounded-lg flex items-center dark:bg-dark-card dark:text-dark-text" data-name="OpenClaw 橙皮书">
+                        <span class="mr-3">📖</span>
+                        <span>OpenClaw 橙皮书</span>
+                        <button class="copy-btn ml-auto text-gray-400 hover:text-orange-600">
+                            <i class="fas fa-copy text-sm"></i>
+                        </button>
+                    </a>
+                    <a href="https://datawhalechina.github.io/hello-claw/cn/adopt/intro/" target="_blank" class="link-card bg-white p-3 rounded-lg flex items-center dark:bg-dark-card dark:text-dark-text" data-name="Hello Claw 教程">
+                        <span class="mr-3">🎓</span>
+                        <span>Hello Claw 教程</span>
+                        <button class="copy-btn ml-auto text-gray-400 hover:text-orange-600">
+                            <i class="fas fa-copy text-sm"></i>
+                        </button>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 常用AI -->
+            <div class="category">
+                <div class="category-header flex items-center justify-between p-4 bg-white rounded-lg shadow-sm dark:bg-dark-card dark:text-dark-text">
+                    <h3 class="text-lg font-semibold flex items-center">
+                        <i class="fas fa-brain mr-2 text-orange-600"></i>
+                        常用AI
+                    </h3>
+                    <i class="fas fa-chevron-down category-toggle"></i>
+                </div>
+                <div class="category-content grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 hidden">
+                    <a href="https://www.qianwen.com/" target="_blank" class="link-card bg-white p-3 rounded-lg flex items-center dark:bg-dark-card dark:text-dark-text" data-name="千问">
+                        <span class="mr-3">🧠</span>
+                        <span>千问</span>
+                        <button class="copy-btn ml-auto text-gray-400 hover:text-orange-600">
+                            <i class="fas fa-copy text-sm"></i>
+                        </button>
+                    </a>
+                    <a href="https://www.doubao.com/" target="_blank" class="link-card bg-white p-3 rounded-lg flex items-center dark:bg-dark-card dark:text-dark-text" data-name="豆包">
+                        <span class="mr-3">🎒</span>
+                        <span>豆包</span>
+                        <button class="copy-btn ml-auto text-gray-400 hover:text-orange-600">
+                            <i class="fas fa-copy text-sm"></i>
+                        </button>
+                    </a>
+                    <a href="https://www.kimi.com/" target="_blank" class="link-card bg-white p-3 rounded-lg flex items-center dark:bg-dark-card dark:text-dark-text" data-name="Kimi">
+                        <span class="mr-3">🌙</span>
+                        <span>Kimi</span>
+                        <button class="copy-btn ml-auto text-gray-400 hover:text-orange-600">
+                            <i class="fas fa-copy text-sm"></i>
+                        </button>
+                    </a>
+                    <a href="https://chat.openai.com" target="_blank" class="link-card bg-white p-3 rounded-lg flex items-center dark:bg-dark-card dark:text-dark-text" data-name="ChatGPT">
+                        <span class="mr-3">💬</span>
+                        <span>ChatGPT</span>
+                        <button class="copy-btn ml-auto text-gray-400 hover:text-orange-600">
+                            <i class="fas fa-copy text-sm"></i>
+                        </button>
+                    </a>
+                    <a href="https://grok.com/" target="_blank" class="link-card bg-white p-3 rounded-lg flex items-center dark:bg-dark-card dark:text-dark-text" data-name="Grok">
+                        <span class="mr-3">⚡</span>
+                        <span>Grok</span>
+                        <button class="copy-btn ml-auto text-gray-400 hover:text-orange-600">
+                            <i class="fas fa-copy text-sm"></i>
+                        </button>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Coding Plan -->
+            <div class="category">
+                <div class="category-header flex items-center justify-between p-4 bg-white rounded-lg shadow-sm dark:bg-dark-card dark:text-dark-text">
+                    <h3 class="text-lg font-semibold flex items-center">
+                        <i class="fas fa-code mr-2 text-orange-600"></i>
+                        Coding Plan
+                    </h3>
+                    <i class="fas fa-chevron-down category-toggle"></i>
+                </div>
+                <div class="category-content grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 hidden">
+                    <a href="https://www.kimi.com/code" target="_blank" class="link-card bg-white p-3 rounded-lg flex items-center dark:bg-dark-card dark:text-dark-text" data-name="Kimi专业代码生成">
+                        <i class="fab fa-python mr-3 text-blue-500 text-xl"></i>
+                        <span>Kimi专业代码生成</span>
+                        <button class="copy-btn ml-auto text-gray-400 hover:text-orange-600">
+                            <i class="fas fa-copy text-sm"></i>
+                        </button>
+                    </a>
+                    <a href="https://platform.minimaxi.com/subscribe/token-plan" target="_blank" class="link-card bg-white p-3 rounded-lg flex items-center dark:bg-dark-card dark:text-dark-text" data-name="MiniMax Token Plan">
+                        <span class="mr-3">💎</span>
+                        <span>MiniMax Token Plan</span>
+                        <button class="copy-btn ml-auto text-gray-400 hover:text-orange-600">
+                            <i class="fas fa-copy text-sm"></i>
+                        </button>
+                    </a>
+                </div>
+            </div>
+
+            <!-- MaaS平台 -->
+            <div class="category">
+                <div class="category-header flex items-center justify-between p-4 bg-white rounded-lg shadow-sm dark:bg-dark-card dark:text-dark-text">
+                    <h3 class="text-lg font-semibold flex items-center">
+                        <i class="fas fa-server mr-2 text-orange-600"></i>
+                        MaaS平台
+                    </h3>
+                    <i class="fas fa-chevron-down category-toggle"></i>
+                </div>
+                <div class="category-content grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 hidden">
+                    <a href="https://bailian.console.aliyun.com/" target="_blank" class="link-card bg-white p-3 rounded-lg flex items-center dark:bg-dark-card dark:text-dark-text" data-name="阿里云MaaS">
+                        <i class="fab fa-alipay mr-3 text-blue-500 text-xl"></i>
+                        <span>阿里云MaaS</span>
+                        <button class="copy-btn ml-auto text-gray-400 hover:text-orange-600">
+                            <i class="fas fa-copy text-sm"></i>
+                        </button>
+                    </a>
+                    <a href="https://www.volcengine.com/product/ark" target="_blank" class="link-card bg-white p-3 rounded-lg flex items-center dark:bg-dark-card dark:text-dark-text" data-name="火山方舟">
+                        <span class="mr-3">🌋</span>
+                        <span>火山方舟</span>
+                        <button class="copy-btn ml-auto text-gray-400 hover:text-orange-600">
+                            <i class="fas fa-copy text-sm"></i>
+                        </button>
+                    </a>
+                </div>
+            </div>
+
+            <!-- AI大模型 -->
+            <div class="category">
+                <div class="category-header flex items-center justify-between p-4 bg-white rounded-lg shadow-sm dark:bg-dark-card dark:text-dark-text">
+                    <h3 class="text-lg font-semibold flex items-center">
+                        <i class="fas fa-robot mr-2 text-orange-600"></i>
+                        AI大模型
+                    </h3>
+                    <i class="fas fa-chevron-down category-toggle"></i>
+                </div>
+                <div class="category-content grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 hidden">
+                    <a href="https://pinchbench.com/" target="_blank" class="link-card bg-white p-3 rounded-lg flex items-center dark:bg-dark-card dark:text-dark-text" data-name="PinchBench龙虾模型排行榜">
+                        <span class="mr-3">🏆</span>
+                        <span>PinchBench龙虾模型排行榜</span>
+                        <button class="copy-btn ml-auto text-gray-400 hover:text-orange-600">
+                            <i class="fas fa-copy text-sm"></i>
+                        </button>
+                    </a>
+                    <a href="https://arena.ai/leaderboard" target="_blank" class="link-card bg-white p-3 rounded-lg flex items-center dark:bg-dark-card dark:text-dark-text" data-name="Arena.ai模型评估平台">
+                        <span class="mr-3">📊</span>
+                        <span>Arena.ai模型评估平台</span>
+                        <button class="copy-btn ml-auto text-gray-400 hover:text-orange-600">
+                            <i class="fas fa-copy text-sm"></i>
+                        </button>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Skills市场 -->
+            <div class="category">
+                <div class="category-header flex items-center justify-between p-4 bg-white rounded-lg shadow-sm dark:bg-dark-card dark:text-dark-text">
+                    <h3 class="text-lg font-semibold flex items-center">
+                        <i class="fas fa-toolbox mr-2 text-orange-600"></i>
+                        Skills市场
+                    </h3>
+                    <i class="fas fa-chevron-down category-toggle"></i>
+                </div>
+                <div class="category-content grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 hidden">
+                    <a href="https://clawhub.ai/" target="_blank" class="link-card bg-white p-3 rounded-lg flex items-center dark:bg-dark-card dark:text-dark-text" data-name="ClawHub">
+                        <span class="mr-3">🔧</span>
+                        <span>ClawHub</span>
+                        <button class="copy-btn ml-auto text-gray-400 hover:text-orange-600">
+                            <i class="fas fa-copy text-sm"></i>
+                        </button>
+                    </a>
+                    <a href="https://skillhub.tencent.com/" target="_blank" class="link-card bg-white p-3 rounded-lg flex items-center dark:bg-dark-card dark:text-dark-text" data-name="SkillHub腾讯云">
+                        <i class="fab fa-tencent-weibo mr-3 text-green-500 text-xl"></i>
+                        <span>SkillHub腾讯云</span>
+                        <button class="copy-btn ml-auto text-gray-400 hover:text-orange-600">
+                            <i class="fas fa-copy text-sm"></i>
+                        </button>
+                    </a>
+                    <a href="https://skills.sh/" target="_blank" class="link-card bg-white p-3 rounded-lg flex items-center dark:bg-dark-card dark:text-dark-text" data-name="Skills.sh">
+                        <span class="mr-3">⚡</span>
+                        <span>Skills.sh</span>
+                        <button class="copy-btn ml-auto text-gray-400 hover:text-orange-600">
+                            <i class="fas fa-copy text-sm"></i>
+                        </button>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Agent生态 -->
+            <div class="category">
+                <div class="category-header flex items-center justify-between p-4 bg-white rounded-lg shadow-sm dark:bg-dark-card dark:text-dark-text">
+                    <h3 class="text-lg font-semibold flex items-center">
+                        <i class="fas fa-network-wired mr-2 text-orange-600"></i>
+                        Agent生态
+                    </h3>
+                    <i class="fas fa-chevron-down category-toggle"></i>
+                </div>
+                <div class="category-content grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 hidden">
+                    <a href="https://www.moltbook.cn/" target="_blank" class="link-card bg-white p-3 rounded-lg flex items-center dark:bg-dark-card dark:text-dark-text" data-name="Moltbook">
+                        <span class="mr-3">👥</span>
+                        <span>Moltbook</span>
+                        <button class="copy-btn ml-auto text-gray-400 hover:text-orange-600">
+                            <i class="fas fa-copy text-sm"></i>
+                        </button>
+                    </a>
+                    <a href="https://clawdchat.ai/" target="_blank" class="link-card bg-white p-3 rounded-lg flex items-center dark:bg-dark-card dark:text-dark-text" data-name="虾聊AI Agent社交平台">
+                        <span class="mr-3">💬</span>
+                        <span>虾聊AI Agent社交平台</span>
+                        <button class="copy-btn ml-auto text-gray-400 hover:text-orange-600">
+                            <i class="fas fa-copy text-sm"></i>
+                        </button>
+                    </a>
+                    <a href="https://clawwatcher.com/" target="_blank" class="link-card bg-white p-3 rounded-lg flex items-center dark:bg-dark-card dark:text-dark-text" data-name="ClawWatcher监控仪表盘">
+                        <span class="mr-3">👁️</span>
+                        <span>ClawWatcher监控仪表盘</span>
+                        <button class="copy-btn ml-auto text-gray-400 hover:text-orange-600">
+                            <i class="fas fa-copy text-sm"></i>
+                        </button>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Agent支付 -->
+            <div class="category">
+                <div class="category-header flex items-center justify-between p-4 bg-white rounded-lg shadow-sm dark:bg-dark-card dark:text-dark-text">
+                    <h3 class="text-lg font-semibold flex items-center">
+                        <i class="fas fa-wallet mr-2 text-orange-600"></i>
+                        Agent支付
+                    </h3>
+                    <i class="fas fa-chevron-down category-toggle"></i>
+                </div>
+                <div class="category-content grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 hidden">
+                    <a href="https://skillpay.me/" target="_blank" class="link-card bg-white p-3 rounded-lg flex items-center dark:bg-dark-card dark:text-dark-text" data-name="SkillPay">
+                        <span class="mr-3">💳</span>
+                        <span>SkillPay</span>
+                        <button class="copy-btn ml-auto text-gray-400 hover:text-orange-600">
+                            <i class="fas fa-copy text-sm"></i>
+                        </button>
+                    </a>
+                    <a href="https://agentcard.ai/" target="_blank" class="link-card bg-white p-3 rounded-lg flex items-center dark:bg-dark-card dark:text-dark-text" data-name="AgentCard虚拟信用卡">
+                        <span class="mr-3">🏦</span>
+                        <span>AgentCard虚拟信用卡</span>
+                        <button class="copy-btn ml-auto text-gray-400 hover:text-orange-600">
+                            <i class="fas fa-copy text-sm"></i>
+                        </button>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 币圈生态 -->
+            <div class="category">
+                <div class="category-header flex items-center justify-between p-4 bg-white rounded-lg shadow-sm dark:bg-dark-card dark:text-dark-text">
+                    <h3 class="text-lg font-semibold flex items-center">
+                        <i class="fas fa-coins mr-2 text-orange-600"></i>
+                        币圈生态
+                    </h3>
+                    <i class="fas fa-chevron-down category-toggle"></i>
+                </div>
+                <div class="category-content grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 hidden">
+                    <a href="https://www.okx.com/zh-hans/agent-tradekit" target="_blank" class="link-card bg-white p-3 rounded-lg flex items-center dark:bg-dark-card dark:text-dark-text" data-name="OKX Agent Trade Kit">
+                        <span class="mr-3">📈</span>
+                        <span>OKX Agent Trade Kit</span>
+                        <button class="copy-btn ml-auto text-gray-400 hover:text-orange-600">
+                            <i class="fas fa-copy text-sm"></i>
+                        </button>
+                    </a>
+                    <a href="https://www.binance.com/zh-CN/skills" target="_blank" class="link-card bg-white p-3 rounded-lg flex items-center dark:bg-dark-card dark:text-dark-text" data-name="Binance Skills Hub">
+                        <span class="mr-3">💱</span>
+                        <span>Binance Skills Hub</span>
+                        <button class="copy-btn ml-auto text-gray-400 hover:text-orange-600">
+                            <i class="fas fa-copy text-sm"></i>
+                        </button>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 我的常用链接 -->
+            <div class="category">
+                <div class="category-header flex items-center justify-between p-4 bg-white rounded-lg shadow-sm dark:bg-dark-card dark:text-dark-text">
+                    <h3 class="text-lg font-semibold flex items-center">
+                        <i class="fas fa-star mr-2 text-orange-600"></i>
+                        我的常用链接
+                    </h3>
+                    <i class="fas fa-chevron-down category-toggle"></i>
+                </div>
+                <div class="category-content p-4 hidden">
+                    <div class="mb-4">
+                        <input 
+                            type="text" 
+                            id="customLinkName" 
+                            placeholder="链接名称" 
+                            class="w-full px-3 py-2 mb-2 border border-gray-300 rounded-lg dark:bg-dark-card dark:border-dark-border dark:text-dark-text"
+                        >
+                        <input 
+                            type="url" 
+                            id="customLinkUrl" 
+                            placeholder="链接地址 (https://...)" 
+                            class="w-full px-3 py-2 mb-2 border border-gray-300 rounded-lg dark:bg-dark-card dark:border-dark-border dark:text-dark-text"
+                        >
+                        <button id="addCustomLink" class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700">
+                            添加链接
+                        </button>
+                    </div>
+                    <div id="customLinksContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- Custom links will be added here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Back to Top Button -->
+        <button id="backToTop" class="fixed bottom-6 right-6 p-3 bg-orange-600 text-white rounded-full shadow-lg hover:bg-orange-700 transition-all opacity-0 invisible" style="opacity: 0; visibility: hidden;">
+            <i class="fas fa-arrow-up"></i>
+        </button>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8 dark:bg-gray-900">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-6">
+                <h3 class="text-xl font-bold mb-2">Claw123 龙虾导航</h3>
+                <p class="text-gray-300">Made with ❤️ for OpenClaw 龙虾爱好者</p>
+            </div>
+            
+            <div class="flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0 md:space-x-8 mb-6">
+                <a href="#" class="text-gray-300 hover:text-white">openclaw导航</a>
+                <a href="#" class="text-gray-300 hover:text-white">龙虾导航</a>
+                <div class="flex space-x-4">
+                    <div class="bg-gray-700 p-2 rounded w-16 h-16 flex items-center justify-center">
+                        <span class="text-xs">微信群</span>
+                    </div>
+                    <div class="bg-gray-700 p-2 rounded w-16 h-16 flex items-center justify-center">
+                        <span class="text-xs">公众号</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center text-gray-400 text-sm">
+                <p>Copyright © 2026 Claw123</p>
+                <p class="mt-2">开源、本地优先的AI助手生态</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Theme management
+        const themeToggle = document.getElementById('themeToggle');
+        const body = document.body;
+        
+        // Check system preference and localStorage
+        function getPreferredTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) return savedTheme;
+            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        
+        function setTheme(theme) {
+            localStorage.setItem('theme', theme);
+            if (theme === 'dark') {
+                body.classList.add('dark');
+            } else {
+                body.classList.remove('dark');
+            }
+            updateThemeIcon();
+        }
+        
+        function updateThemeIcon() {
+            const isDark = body.classList.contains('dark');
+            const moonIcon = themeToggle.querySelector('.fa-moon');
+            const sunIcon = themeToggle.querySelector('.fa-sun');
+            if (isDark) {
+                moonIcon?.classList.add('hidden');
+                sunIcon?.classList.remove('hidden');
+            } else {
+                moonIcon?.classList.remove('hidden');
+                sunIcon?.classList.add('hidden');
+            }
+        }
+        
+        // Initialize theme
+        setTheme(getPreferredTheme());
+        
+        // Theme toggle event
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = body.classList.contains('dark') ? 'dark' : 'light';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            setTheme(newTheme);
+        });
+        
+        // Category toggle functionality
+        document.querySelectorAll('.category-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const content = header.nextElementSibling;
+                const toggleIcon = header.querySelector('.category-toggle');
+                
+                if (content.classList.contains('hidden')) {
+                    content.classList.remove('hidden');
+                    toggleIcon.classList.remove('fa-chevron-down');
+                    toggleIcon.classList.add('fa-chevron-up');
+                } else {
+                    content.classList.add('hidden');
+                    toggleIcon.classList.remove('fa-chevron-up');
+                    toggleIcon.classList.add('fa-chevron-down');
+                }
+            });
+        });
+        
+        // Search functionality
+        const searchInput = document.getElementById('searchInput');
+        const linkCards = document.querySelectorAll('.link-card');
+        
+        searchInput.addEventListener('input', () => {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            
+            linkCards.forEach(card => {
+                const linkName = card.getAttribute('data-name') || card.textContent.toLowerCase();
+                if (searchTerm === '' || linkName.toLowerCase().includes(searchTerm)) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+        
+        // Copy link functionality
+        document.querySelectorAll('.copy-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const link = btn.closest('a');
+                if (link) {
+                    navigator.clipboard.writeText(link.href).then(() => {
+                        const originalText = btn.innerHTML;
+                        btn.innerHTML = '<i class="fas fa-check text-green-500 text-sm"></i>';
+                        setTimeout(() => {
+                            btn.innerHTML = originalText;
+                        }, 2000);
+                    });
+                }
+            });
+        });
+        
+        // Bookmark drag functionality
+        const bookmarkLogo = document.getElementById('bookmarkLogo');
+        const bookmarkDemo = document.getElementById('bookmarkDemo');
+        
+        function createBookmark() {
+            const url = window.location.href;
+            const title = 'Claw123 龙虾导航';
+            
+            if (window.sidebar && window.sidebar.addPanel) {
+                window.sidebar.addPanel(title, url, "");
+            } else if (window.external && ('AddFavorite' in window.external)) {
+                window.external.AddFavorite(url, title);
+            } else {
+                alert('请按 Cmd+D (Mac) 或 Ctrl+D (Windows) 来收藏此页面');
+            }
+        }
+        
+        bookmarkLogo.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('text/plain', 'bookmark');
+        });
+        
+        bookmarkDemo.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('text/plain', 'bookmark');
+        });
+        
+        // Custom links functionality
+        const customLinkName = document.getElementById('customLinkName');
+        const customLinkUrl = document.getElementById('customLinkUrl');
+        const addCustomLinkBtn = document.getElementById('addCustomLink');
+        const customLinksContainer = document.getElementById('customLinksContainer');
+        
+        // Load custom links from localStorage
+        function loadCustomLinks() {
+            const customLinks = JSON.parse(localStorage.getItem('customLinks') || '[]');
+            customLinksContainer.innerHTML = '';
+            customLinks.forEach((link, index) => {
+                addCustomLinkToDOM(link.name, link.url, index);
+            });
+        }
+        
+        function addCustomLinkToDOM(name, url, index) {
+            const linkElement = document.createElement('a');
+            linkElement.href = url;
+            linkElement.target = '_blank';
+            linkElement.className = 'link-card bg-white p-3 rounded-lg flex items-center dark:bg-dark-card dark:text-dark-text';
+            linkElement.setAttribute('data-name', name);
+            linkElement.innerHTML = `
+                <span class="mr-3">⭐</span>
+                <span>${name}</span>
+                <button class="copy-btn ml-auto text-gray-400 hover:text-orange-600 delete-custom-link" data-index="${index}">
+                    <i class="fas fa-trash text-sm"></i>
+                </button>
+            `;
+            customLinksContainer.appendChild(linkElement);
+            
+            // Add copy functionality
+            const copyBtn = linkElement.querySelector('.copy-btn:not(.delete-custom-link)');
+            if (copyBtn) {
+                copyBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    navigator.clipboard.writeText(url).then(() => {
+                        const originalText = copyBtn.innerHTML;
+                        copyBtn.innerHTML = '<i class="fas fa-check text-green-500 text-sm"></i>';
+                        setTimeout(() => {
+                            copyBtn.innerHTML = originalText;
+                        }, 2000);
+                    });
+                });
+            }
+            
+            // Add delete functionality
+            const deleteBtn = linkElement.querySelector('.delete-custom-link');
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    deleteCustomLink(index);
+                });
+            }
+        }
+        
+        function saveCustomLinks() {
+            const customLinks = [];
+            const existingLinks = customLinksContainer.querySelectorAll('.link-card');
+            existingLinks.forEach(link => {
+                const name = link.getAttribute('data-name');
+                const url = link.href;
+                if (name && url) {
+                    customLinks.push({ name, url });
+                }
+            });
+            localStorage.setItem('customLinks', JSON.stringify(customLinks));
+        }
+        
+        function deleteCustomLink(index) {
+            let customLinks = JSON.parse(localStorage.getItem('customLinks') || '[]');
+            customLinks.splice(index, 1);
+            localStorage.setItem('customLinks', JSON.stringify(customLinks));
+            loadCustomLinks();
+        }
+        
+        addCustomLinkBtn.addEventListener('click', () => {
+            const name = customLinkName.value.trim();
+            const url = customLinkUrl.value.trim();
+            
+            if (name && url) {
+                let customLinks = JSON.parse(localStorage.getItem('customLinks') || '[]');
+                customLinks.push({ name, url });
+                localStorage.setItem('customLinks', JSON.stringify(customLinks));
+                loadCustomLinks();
+                customLinkName.value = '';
+                customLinkUrl.value = '';
+            }
+        });
+        
+        // Load custom links on page load
+        loadCustomLinks();
+        
+        // Back to top button
+        const backToTopBtn = document.getElementById('backToTop');
+        
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 300) {
+                backToTopBtn.style.opacity = '1';
+                backToTopBtn.style.visibility = 'visible';
+            } else {
+                backToTopBtn.style.opacity = '0';
+                backToTopBtn.style.visibility = 'hidden';
+            }
+        });
+        
+        backToTopBtn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+        
+        // Initialize all categories as expanded on first load
+        document.querySelectorAll('.category-header').forEach(header => {
+            const content = header.nextElementSibling;
+            const toggleIcon = header.querySelector('.category-toggle');
+            content.classList.remove('hidden');
+            toggleIcon.classList.remove('fa-chevron-down');
+            toggleIcon.classList.add('fa-chevron-up');
+        });
+    </script>
+</body>
+</html>
